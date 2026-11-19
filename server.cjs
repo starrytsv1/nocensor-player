@@ -6,7 +6,9 @@ const token=process.env.TELEGRAM_BOT_TOKEN||fs.readFileSync(path.join(work,'bot-
 const yt=process.env.YT_DLP_PATH||path.join(work,'yt-dlp.exe');
 const ffmpeg=process.env.FFMPEG_PATH||path.join(work,'ffmpeg-package/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v9.0.2.exe');
 if(!token||!Number.isSafeInteger(owner)||owner<=0)throw Error('Telegram token and owner ID are required');
-const db=process.env.DATABASE_URL?new (require('pg').Pool)({connectionString:process.env.DATABASE_URL,ssl:process.env.PGSSL==='true'?{rejectUnauthorized:true}:undefined}):null;
+const dbUrl=process.env.DATABASE_URL?new URL(process.env.DATABASE_URL):null;
+if(dbUrl&&process.env.DATABASE_CA)dbUrl.searchParams.delete('sslmode');
+const db=dbUrl?new (require('pg').Pool)({connectionString:dbUrl.toString(),ssl:process.env.DATABASE_CA?{ca:process.env.DATABASE_CA,rejectUnauthorized:true}:process.env.PGSSL==='true'?{rejectUnauthorized:true}:undefined}):null;
 if(process.env.REQUIRE_DATABASE==='true'&&!db)throw Error('Persistent database is required');
 const dbReady=db?db.query('CREATE TABLE IF NOT EXISTS player_state (owner_id TEXT PRIMARY KEY, playlists JSONB NOT NULL)').catch(e=>{console.error('Database initialization failed:',e.message);throw e}):Promise.resolve();
 dbReady.catch(()=>{});
