@@ -1,0 +1,13 @@
+name: Keep player available
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request player
+        run: curl --fail --silent --show-error --max-time 90 https://nocensor-player.onrender.com/ > /dev/null
